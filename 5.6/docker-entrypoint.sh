@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# set configuration values based on environment
+if grep -q max_allowed_packet /etc/my.cnf
+then
+    sed 's/\(max_allowed_packet\).*/\1 = '$MYSQL_MAX_ALLOWED_PACKET'/' /etc/my.cnf
+else
+    echo "max_allowed_packet=$MYSQL_MAX_ALLOWED_PACKET" >> /etc/my.cnf
+fi
+
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
