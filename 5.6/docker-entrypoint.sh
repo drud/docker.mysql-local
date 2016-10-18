@@ -4,9 +4,9 @@ set -e
 # set configuration values based on environment
 if grep -q max_allowed_packet /etc/my.cnf
 then
-    sed -i 's/\(max_allowed_packet\).*/\1 = '$MYSQL_MAX_ALLOWED_PACKET'/' /etc/my.cnf
+	sed -i 's/\(max_allowed_packet\).*/\1 = '$MYSQL_MAX_ALLOWED_PACKET'/' /etc/my.cnf
 else
-    echo "max_allowed_packet=$MYSQL_MAX_ALLOWED_PACKET" >> /etc/my.cnf
+	echo "max_allowed_packet=$MYSQL_MAX_ALLOWED_PACKET" >> /etc/my.cnf
 fi
 
 # if command starts with an option, prepend mysqld
@@ -105,8 +105,8 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 
 		# if a sql dump has been mounted into /db then import it
-		dbfile=$(ls /db)
-		if [ -n "$dbfile" ]; then
+		if [ -d /db ]; then
+			dbfile=$(ls /db)
 			echo "importing $dbfile"
 			${mysql[@]} < /db/$dbfile
 		fi
