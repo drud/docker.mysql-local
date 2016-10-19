@@ -103,7 +103,8 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 
 		# if a sql dump has been mounted into /db then import it
-		if [ -d /db ]; then
+		dbfile=$(ls /db)
+		if [ -n "$dbfile" ]; then
 			dbfile=$(ls /db)
 			echo "importing $dbfile"
 			${mysql[@]} < /db/$dbfile
