@@ -14,7 +14,7 @@ if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
 	exit 2
 fi
-sleep 20  # It takes several seconds to come up normally
+CONTAINER_NAME=testserver ../test/containercheck.sh
 echo "Connecting to server..."
 for i in $(seq 30 -1 0); do
 	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=rot -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
