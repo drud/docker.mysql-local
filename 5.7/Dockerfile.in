@@ -17,10 +17,14 @@ RUN rpmkeys --import http://repo.mysql.com/RPM-GPG-KEY-mysql \
   && rm -rf /var/lib/mysql \
   && mkdir -p /var/lib/mysql
 
-RUN mkdir /docker-entrypoint-initdb.data
+# Ensure there is no db from package installation
+RUN mkdir /docker-entrypoint-initdb.data && \
+  rm -rf /var/lib/mysql && \
+  mkdir /var/lib/mysql
+
 ADD files /
 RUN chmod ugo+x /import.sh /healthcheck.sh
-VOLUME /var/lib/mysql
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306 33060
