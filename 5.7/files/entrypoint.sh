@@ -64,7 +64,7 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	fi
 
 	if [ "$MYSQL_DATABASE" ]; then
-		echo "CREATE DATABASE  IF NOT EXISTS \`$MYSQL_DATABASE\` character set UTF8mb4 collate utf8mb4_bin;" | "${mysql[@]}"
+		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
 		mysql+=( "$MYSQL_DATABASE" )
 	fi
 
