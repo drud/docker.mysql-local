@@ -14,6 +14,16 @@ if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
 	exit 2
 fi
+
+# Now that we've got a container running, we need to make sure to clean up
+# at the end of the test run, even if something fails.
+function cleanup {
+	echo "Removing testserver"
+	docker stop testerver 2>/dev/null
+	docker rm testserver 2>/dev/null
+}
+trap cleanup EXIT
+
 CONTAINER_NAME=testserver ../test/containercheck.sh
 echo "Connecting to server..."
 for i in $(seq 30 -1 0); do
