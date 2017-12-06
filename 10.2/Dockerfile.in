@@ -1,0 +1,4 @@
+FROM UPSTREAM_REPO
+ADD files /
+EXPOSE 3306 33060
+HEALTHCHECK --interval=5s --retries=5 CMD ["/healthcheck.sh"]

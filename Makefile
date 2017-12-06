@@ -4,7 +4,7 @@ PREFIX = drud/mysql-local
 DIRECTORY = $(shell pwd)
 
 
-DIRS = 5.7
+DIRS = 5.7 10.2
 BASEDIR=./
 
 .PHONY: $(MAKECMDGOALS) $(DIRS) all build test clean container push
