@@ -8,9 +8,6 @@
 # Docker repo for a push
 DOCKER_REPO ?= drud/mariadb-local
 
-# Upstream repo optionally used in the Dockerfile
-UPSTREAM_REPO ?= mariadb:10.2
-
 # Top-level directories to build
 # SRC_DIRS := pkg cmd
 
