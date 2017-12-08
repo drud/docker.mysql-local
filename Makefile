@@ -1,18 +1,51 @@
+# Makefile for a standard repo with associated container
 
-TAG = $(shell git rev-parse --abbrev-ref HEAD | tr -d '\n')
-PREFIX = drud/mysql-local
-DIRECTORY = $(shell pwd)
+##### These variables need to be adjusted in most repositories #####
 
+# This repo's root import path (under GOPATH).
+# PKG := github.com/drud/repo_name
 
-DIRS = 5.7 10.2
-BASEDIR=./
+# Docker repo for a push
+DOCKER_REPO ?= drud/mariadb-local
 
-.PHONY: $(MAKECMDGOALS) $(DIRS) all build test clean container push
+# Upstream repo optionally used in the Dockerfile
+UPSTREAM_REPO ?= mariadb:10.2
 
-all: $(DIRS)
+# Top-level directories to build
+# SRC_DIRS := pkg cmd
 
-$(MAKECMDGOALS): $(DIRS)
+# Version variables to replace in build, The variable VERSION is automatically pulled from git committish so it doesn't have to be added
+# These are replaced in the $(PKG).version package.
+# VERSION_VARIABLES = ThisCmdVersion ThatContainerVersion
 
-$(DIRS):
-	$(MAKE) -C $(addprefix $(BASEDIR),$@) $(MAKECMDGOALS)
+# These variables will be used as the defaults unless overridden by the make command line
+#ThisCmdVersion ?= $(VERSION)
+#ThatContainerVersion ?= drud/nginx-php-fpm7-local
 
+# Optional to docker build
+# DOCKER_ARGS =
+
+# VERSION can be set by
+	# Default: git tag
+	# make command line: make VERSION=0.9.0
+
+# Normally VERSION is derived from git committish/tag.
+# VERSION can be overridden on make commandline: make push VERSION=0.9.1
+# Using the git committish means we can always tie code to container or binary.
+VERSION := $(shell git describe --tags --always --dirty)
+
+MYSQL_VERSION = 10.2
+
+# Each section of the Makefile is included from standard components below.
+# If you need to override one, import its contents below and comment out the
+# include. That way the base components can easily be updated as our general needs
+# change.
+#include build-tools/makefile_components/base_build_go.mak
+include build-tools/makefile_components/base_build_python-docker.mak
+include build-tools/makefile_components/base_container.mak
+include build-tools/makefile_components/base_push.mak
+#include build-tools/makefile_components/base_test_go.mak
+include build-tools/makefile_components/base_test_python.mak
+
+test: container
+	./test/testserver.sh $(DOCKER_REPO):$(VERSION) $(MYSQL_VERSION)

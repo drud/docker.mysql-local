@@ -24,7 +24,7 @@ function cleanup {
 }
 trap cleanup EXIT
 
-CONTAINER_NAME=testserver ../test/containercheck.sh
+CONTAINER_NAME=testserver ./test/containercheck.sh
 echo "Connecting to server..."
 for i in $(seq 30 -1 0); do
 	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=rot -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
