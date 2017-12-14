@@ -5,5 +5,8 @@ ENV MYSQL_PASSWORD db
 ENV MYSQL_ROOT_PASSWORD root
 ENV MYSQL_MAX_ALLOWED_PACKET 16m
 ADD files /
+RUN /docker-setup.sh
 EXPOSE 3306 33060
 HEALTHCHECK --interval=5s --retries=5 CMD ["/healthcheck.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD []
