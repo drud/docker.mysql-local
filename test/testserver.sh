@@ -19,10 +19,12 @@ fi
 # at the end of the test run, even if something fails.
 function cleanup {
 	echo "Removing testserver"
-	docker stop testerver 2>/dev/null
-	docker rm testserver 2>/dev/null
+	docker rm -f testserver 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# Just to make sure we're starting with a clean environment.
+cleanup
 
 CONTAINER_NAME=testserver ./test/containercheck.sh
 echo "Connecting to server..."
