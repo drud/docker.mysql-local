@@ -8,7 +8,7 @@ CONTAINER_NAME="testserver"
 HOSTPORT=33000
 
 echo "Starting image with MySQL image $IMAGE"
-docker run -e MYSQL_ROOT_PASSWORD=rot --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
+docker run -e MYSQL_ROOT_PASSWORD=root --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
 RES=$?
 if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
@@ -29,7 +29,7 @@ cleanup
 CONTAINER_NAME=$CONTAINER_NAME ./test/containercheck.sh
 echo "Connecting to server..."
 for i in $(seq 30 -1 0); do
-	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=rot -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
+	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=root -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
 	RES=$?
 	if [ $RES -eq 0 ]; then
 		break
