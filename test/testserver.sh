@@ -8,7 +8,7 @@ CONTAINER_NAME="testserver"
 HOSTPORT=33000
 
 echo "Starting image with MySQL image $IMAGE"
-docker run -e MYSQL_ROOT_PASSWORD=root --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
+docker run --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
 RES=$?
 if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
