@@ -61,11 +61,11 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	echo "user=${MYSQL_USER}" >> /root/.my.cnf
 	echo "password=${MYSQL_PASSWORD}" >> /root/.my.cnf
 	echo "database=${MYSQL_DATABASE}" >> /root/.my.cnf
-
-	echo
-	echo 'MySQL init process done. Ready for start up.'
-	echo
 fi
+
+echo
+echo 'MySQL init process done. Ready for start up.'
+echo
 
 # Change  to UID/GID of the docker user
 if [ -n "$DDEV_UID" ] ; then
