@@ -8,4 +8,5 @@ ADD files /
 EXPOSE 3306 33060
 HEALTHCHECK --interval=5s --retries=5 CMD ["/healthcheck.sh"]
 ENTRYPOINT ["/docker-entrypoint.sh"]
+# Note that this line shouldn't be removed, as it's removing the upstream CMD.
 CMD []
