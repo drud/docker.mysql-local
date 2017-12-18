@@ -7,6 +7,14 @@ MYSQL_VERSION="$2"
 CONTAINER_NAME="testserver"
 HOSTPORT=33000
 
+function cleanup {
+	echo "Removing ${CONTAINER_NAME}"
+	docker rm -f $CONTAINER_NAME 2>/dev/null || true
+}
+
+# Just to make sure we're starting with a clean environment.
+cleanup
+
 echo "Starting image with MySQL image $IMAGE"
 docker run --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
 RES=$?
@@ -17,14 +25,8 @@ fi
 
 # Now that we've got a container running, we need to make sure to clean up
 # at the end of the test run, even if something fails.
-function cleanup {
-	echo "Removing ${CONTAINER_NAME}"
-	docker rm -f $CONTAINER_NAME 2>/dev/null || true
-}
 trap cleanup EXIT
 
-# Just to make sure we're starting with a clean environment.
-cleanup
 
 CONTAINER_NAME=$CONTAINER_NAME ./test/containercheck.sh
 echo "Connecting to server..."
