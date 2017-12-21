@@ -4,34 +4,20 @@
 
 IMAGE="$1"  # Full image name with tag
 MYSQL_VERSION="$2"
-CONTAINER_NAME="testserver"
+
 HOSTPORT=33000
 
-function cleanup {
-	echo "Removing ${CONTAINER_NAME}"
-	docker rm -f $CONTAINER_NAME 2>/dev/null || true
-}
-
-# Just to make sure we're starting with a clean environment.
-cleanup
-
 echo "Starting image with MySQL image $IMAGE"
-docker run --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE
+docker run -e MYSQL_ROOT_PASSWORD=rot --name=testserver -p $HOSTPORT:3306 -d $IMAGE
 RES=$?
 if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
 	exit 2
 fi
-
-# Now that we've got a container running, we need to make sure to clean up
-# at the end of the test run, even if something fails.
-trap cleanup EXIT
-
-
-CONTAINER_NAME=$CONTAINER_NAME ./test/containercheck.sh
+CONTAINER_NAME=testserver ../test/containercheck.sh
 echo "Connecting to server..."
 for i in $(seq 30 -1 0); do
-	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=root -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
+	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=rot -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
 	RES=$?
 	if [ $RES -eq 0 ]; then
 		break
