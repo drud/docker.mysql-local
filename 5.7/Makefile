@@ -6,18 +6,17 @@
 # PKG := github.com/drud/repo_name
 
 # Docker repo for a push
-DOCKER_REPO ?= drud/mysql-local-57
+DOCKER_REPO ?= drud/mariadb-local
 
 # Upstream repo used in the Dockerfile
-UPSTREAM_REPO ?= oraclelinux:7.3
+# UPSTREAM_REPO ?= oraclelinux:7.3
 
 # Top-level directories to build
 #SRC_DIRS := files drudapi secrets utils
 
 # Optional to docker build
-DOCKER_ARGS = --build-arg MYSQL_PACKAGE_VERSION=5.7.17-1
+# DOCKER_ARGS = --build-arg MYSQL_PACKAGE_VERSION=5.7.17-1
 
-MYSQL_VERSION = 5.7
 
 # VERSION can be set by
   # Default: git tag
@@ -42,5 +41,7 @@ include ../build-tools/makefile_components/base_push.mak
 #include build-tools/makefile_components/base_test_go.mak
 include ../build-tools/makefile_components/base_test_python.mak
 
+MYSQL_VERSION=10.1
+
 test: container
-	../test/testserver.sh $(DOCKER_REPO):$(VERSION) $(MYSQL_VERSION) && ../test/cleanup.sh $(DOCKER_REPO):$(VERSION)
+	../test/testserver.sh $(DOCKER_REPO):$(VERSION) $(MYSQL_VERSION) 

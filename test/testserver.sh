@@ -1,31 +1,69 @@
 #!/bin/bash
-
-#set -o errexit
+# set -x
+set -euo pipefail
 
 IMAGE="$1"  # Full image name with tag
 MYSQL_VERSION="$2"
-
+CONTAINER_NAME="testserver"
 HOSTPORT=33000
 
+DDEV_UID=0
+DDEV_GID=0
+if [ $(uname -s) == "linux" ]; then
+	DDEV_UID=$(id -u)
+	DDEV_GID=$(id -g)
+fi
+
+function cleanup {
+	echo "Removing ${CONTAINER_NAME}"
+	docker rm -f $CONTAINER_NAME 2>/dev/null || true
+}
+
+# Wait for container to be ready.
+function containercheck {
+	for i in {60..0};
+	do
+		# status contains uptime and health in parenthesis, sed to return health
+		status="$(docker ps --format "{{.Status}}" --filter "name=$CONTAINER_NAME" | sed  's/.*(\(.*\)).*/\1/')"
+		if [[ "$status" == "healthy" ]]
+		then
+			return 0
+		fi
+		sleep 1
+	done
+	return 1
+}
+
+
+# Just to make sure we're starting with a clean environment.
+cleanup
+
 echo "Starting image with MySQL image $IMAGE"
-docker run -e MYSQL_ROOT_PASSWORD=rot --name=testserver -p $HOSTPORT:3306 -d $IMAGE
-RES=$?
-if [ ! $RES = 0 ]; then
-	echo "Server start failed with error code $RES"
+if ! docker run -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
+	echo "MySQL server start failed with error code $?"
 	exit 2
 fi
-CONTAINER_NAME=testserver ../test/containercheck.sh
-echo "Connecting to server..."
-for i in $(seq 30 -1 0); do
-	OUTPUT=$(echo "SHOW VARIABLES like 'version';" | mysql -uroot --password=rot -h127.0.0.1 -P$HOSTPORT 2>/dev/null)
+
+# Now that we've got a container running, we need to make sure to clean up
+# at the end of the test run, even if something fails.
+trap cleanup EXIT
+
+echo "Connecting to mysql server..."
+if ! containercheck; then
+	echo "Container did not become ready"
+fi
+echo "Connected to mysql server."
+for i in {60..0}; do
+	OUTPUT=$(mysql --user=root --password=root  --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW VARIABLES like \"version\";")
 	RES=$?
 	if [ $RES -eq 0 ]; then
+		echo "Successful mysql show variables, output=$OUTPUT"
 		break
 	fi
 	sleep 1
 done
-if [ $i = 0 ]; then
-	echo >&2 "Unable to connect to server."
+if [ $i -eq 0 ]; then
+	echo >&2 "Timed out waiting to connect to mysql server."
 	exit 3
 fi
 
@@ -34,7 +72,7 @@ if [[ $OUTPUT =~ $versionregex ]];
 then
 	echo "Version check ok - found '$MYSQL_VERSION'"
 else
-	echo "Expected to see version $MYSQL_VERSION. Actual output: $OUTPUT"
+	echo "Expected to see $versionregex. Actual output: $OUTPUT"
 	exit 4
 fi
 
