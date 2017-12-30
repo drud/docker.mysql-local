@@ -11,7 +11,7 @@ RUN mkdir /docker-entrypoint-initdb.data
 # Install mariadb
 RUN apk update && apk add mariadb mariadb-client bash tzdata
 # Remove the installed version as we need to set up our own from scratch
-RUN rm -rf /var/lib/mysql/*
+RUN rm -rf /var/lib/mysql/* /etc/mysql
 
 ADD files /
 
@@ -21,4 +21,4 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 EXPOSE 3306
 # The following line overrides any cmd entry
 CMD []
-HEALTHCHECK --interval=5s --retries=5 CMD ["/healthcheck.sh"]
+HEALTHCHECK --interval=2s --retries=30 CMD ["/healthcheck.sh"]

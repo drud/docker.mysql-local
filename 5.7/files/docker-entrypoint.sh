@@ -1,9 +1,9 @@
 #!/bin/bash
-# set -x
+set -x
 set -eu
 set -o pipefail
 
-SOCKET=/run/mysqld/mysqld.sock
+SOCKET=/var/tmp/mysql.sock
 
 # Change  to UID/GID of the docker user
 # We use the default assignment to zero to prevent triggering
@@ -49,19 +49,27 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 		exit 1
 	fi
 
-	mysql --database=mysql -uroot --password='' -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
 
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot --password='' mysql
+	mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -uroot  mysql
 
-	mysql -uroot  --password='' -e "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;"
-	mysql -uroot  --password='' -e "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;"
-	mysql -uroot  --password='' -e 'FLUSH PRIVILEGES ;'
+	mysql -uroot <<EOF
+		CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE;
+		CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+		CREATE USER IF NOT EXISTS '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';
 
-	mysql -uroot --password='' -e "CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-	mysql -uroot --password='' -e "GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;"
-	mysql -uroot --password='' -e "FLUSH PRIVILEGES;"
+		GRANT ALL ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%';
+		GRANT ALL ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'localhost';
 
-	mysqladmin --socket=$SOCKET  -uroot password "$MYSQL_ROOT_PASSWORD"
+		CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
+		CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
+
+		GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION;
+		GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+EOF
+
+	# mysqladmin --socket=$SOCKET  -uroot password "$MYSQL_ROOT_PASSWORD"
+
+	mv /root/mysqlclient.cnf /root/.my.cnf
 
 	if ! kill -s TERM "$pid" || ! wait "$pid"; then
 		echo >&2 'Mariadb initialization process failed.'
@@ -74,6 +82,7 @@ fi
 echo
 echo 'MySQL init process done. Ready for start up.'
 echo
+
 
 chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
 
