@@ -3,7 +3,7 @@
 set -eu
 set -o pipefail
 
-SOCKET=/var/tmp/mysql.sock
+SOCKET=/run/mysqld/mysqld.sock
 
 # Change  to UID/GID of the docker user
 # We use the default assignment to zero to prevent triggering
@@ -21,8 +21,8 @@ fi
 # If mariadb has not been initialized, initialize it.
 # Then create our 'db', database, 'db' user, and permissions.
 if [ ! -d "/var/lib/mysql/mysql" ]; then
-	mkdir -p /var/lib/mysql
-	chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
+	mkdir -p /var/lib/mysql /run/mysqld
+	chown -R mysql:mysql /var/lib/mysql /var/log/mysql* /run/mysqld
 
 	echo 'Initializing mysql'
 	mysql_install_db
