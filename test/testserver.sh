@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+#set -x
 set -euo pipefail
 
 IMAGE="$1"  # Full image name with tag
@@ -14,6 +14,7 @@ if [ $(uname -s) == "linux" ]; then
 	DDEV_GID=$(id -g)
 fi
 
+# Always clean up the container on exit.
 function cleanup {
 	echo "Removing ${CONTAINER_NAME}"
 	docker rm -f $CONTAINER_NAME 2>/dev/null || true
@@ -53,27 +54,30 @@ if ! containercheck; then
 	echo "Container did not become ready"
 fi
 echo "Connected to mysql server."
-for i in {60..0}; do
-	OUTPUT=$(mysql --user=root --password=root  --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW VARIABLES like \"version\";")
-	RES=$?
-	if [ $RES -eq 0 ]; then
-		echo "Successful mysql show variables, output=$OUTPUT"
-		break
-	fi
-	sleep 1
-done
-if [ $i -eq 0 ]; then
-	echo >&2 "Timed out waiting to connect to mysql server."
-	exit 3
+
+# Try basic connection using root user/password.
+if ! mysql --user=root --password=root --database=mysql --host=127.0.0.1 --port=$HOSTPORT -e "SELECT 1;"; then
+	exit 1;
 fi
 
+# Test to make sure the db user and database are installed properly
+if ! mysql -udb -pdb --database=db --host=127.0.0.1 --port=$HOSTPORT -e "SHOW TABLES;"; then
+	exit 2
+fi
+
+# Make sure we have the right mysql version and can query it (and have root user setup)
+OUTPUT=$(mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW VARIABLES like \"version\";")
+RES=$?
+if [ $RES -eq 0 ]; then
+	echo "Successful mysql show variables, output=$OUTPUT"
+fi
 versionregex="version	$MYSQL_VERSION"
 if [[ $OUTPUT =~ $versionregex ]];
 then
 	echo "Version check ok - found '$MYSQL_VERSION'"
 else
 	echo "Expected to see $versionregex. Actual output: $OUTPUT"
-	exit 4
+	exit 3
 fi
 
 echo "Test passed"
