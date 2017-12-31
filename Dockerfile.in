@@ -9,7 +9,7 @@ ENV MYSQL_MAX_ALLOWED_PACKET 16m
 RUN mkdir /docker-entrypoint-initdb.data
 
 # Install mariadb and other packages
-RUN apk update && apk add --no-cache mariadb mariadb-client bash tzdata shadow
+RUN apk update && apk add mariadb mariadb-client bash tzdata shadow
 # Remove the installed version as we need to set up our own from scratch
 RUN rm -rf /var/lib/mysql/* /etc/mysql
 
