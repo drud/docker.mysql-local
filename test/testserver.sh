@@ -10,7 +10,7 @@ MYTMPDIR=~/tmp/testserver-sh_$$
 
 DDEV_UID=0
 DDEV_GID=0
-if [ $(uname -s) == "linux" ]; then
+if [ $(uname -s) == "Linux" ]; then
 	DDEV_UID=$(id -u)
 	DDEV_GID=$(id -g)
 fi
@@ -46,7 +46,7 @@ cleanup
 mkdir -p $MYTMPDIR
 rm -rf $MYTMPDIR/*
 
-echo "Starting image with MySQL image $IMAGE"
+echo "Starting image with database image $IMAGE"
 if ! docker run -v $MYTMPDIR:/var/lib/mysql -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
 	exit 2
