@@ -6,6 +6,7 @@ IMAGE="$1"  # Full image name with tag
 MYSQL_VERSION="$2"
 CONTAINER_NAME="testserver"
 HOSTPORT=33000
+MYTMPDIR=~/tmp/testserver-sh_$$
 
 DDEV_UID=0
 DDEV_GID=0
@@ -18,6 +19,7 @@ fi
 function cleanup {
 	echo "Removing ${CONTAINER_NAME}"
 	docker rm -f $CONTAINER_NAME 2>/dev/null || true
+	rm -rf $MYTMPDIR
 }
 
 # Wait for container to be ready.
@@ -39,8 +41,13 @@ function containercheck {
 # Just to make sure we're starting with a clean environment.
 cleanup
 
+# We use MYTMPDIR for a bogus temp dir since mktemp -d creates a dir
+# outside a docker-mountable directory on macOS
+mkdir -p $MYTMPDIR
+rm -rf $MYTMPDIR/*
+
 echo "Starting image with MySQL image $IMAGE"
-if ! docker run -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
+if ! docker run -v $MYTMPDIR:/var/lib/mysql -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
 	exit 2
 fi
@@ -49,7 +56,7 @@ fi
 # at the end of the test run, even if something fails.
 trap cleanup EXIT
 
-echo "Connecting to mysql server..."
+echo "Waiting for database server to become ready..."
 if ! containercheck; then
 	echo "Container did not become ready"
 fi
