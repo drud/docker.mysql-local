@@ -67,10 +67,6 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 		GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 EOF
 
-	# mysqladmin --socket=$SOCKET  -uroot password "$MYSQL_ROOT_PASSWORD"
-
-	mv /root/mysqlclient.cnf /root/.my.cnf
-
 	if ! kill -s TERM "$pid" || ! wait "$pid"; then
 		echo >&2 'Mariadb initialization process failed.'
 		exit 1
@@ -79,11 +75,12 @@ EOF
 	echo 'Database initialized'
 fi
 
+
 echo
 echo 'MySQL init process done. Ready for start up.'
 echo
 
-
+cp /root/mysqlclient.cnf /root/.my.cnf
 chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
 
 echo "Starting mysqld."
