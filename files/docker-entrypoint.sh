@@ -16,6 +16,11 @@ if [ "${DDEV_GID:=0}" -gt 0 ] ; then
         groupmod -o -g $DDEV_GID mysql
 fi
 
+# Bring in a user override of my.cnf from .ddev
+if [ -f /ddev_config/my.cnf ] ; then
+    cp /ddev_config/my.cnf /etc/my.cnf
+fi
+
 # If mariadb has not been initialized, copy in the base image.
 if [ ! -d "/var/lib/mysql/mysql" ]; then
 	mkdir -p /var/lib/mysql

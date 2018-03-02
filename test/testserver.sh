@@ -99,5 +99,28 @@ if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
 fi
 rm -f $outdir/mariadb_10.1_base_db.tgz
 
-echo "Test passed"
+
+
+# With the standard config, our collation should be utf8mb4_bin
+mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8mb4_bin"
+
+cleanup
+
+# Run with alternate configuration my.conf mounted
+if ! docker run -v $MYTMPDIR:/var/lib/mysql -v $PWD/test/testdata:/ddev_config -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
+	echo "MySQL server start failed with error code $?"
+	exit 2
+fi
+
+if ! containercheck; then
+	echo "Container did not become ready"
+fi
+
+# With the custom config, our collation should be utf8_general_ci, not utf8mb4
+mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8_general_ci"
+
+docker exec -it $CONTAINER_NAME grep "DDEV TEST CUSTOM CONFIG" /etc/my.cnf
+
+
+echo "Tests passed"
 exit 0
