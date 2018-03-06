@@ -3,7 +3,7 @@
 # This script can be used to create a bare database for use by
 # ddev.
 # docker run -it --entrypoint=bash drud/mariadb-local:whatever
-# /.create_base_db.sh
+# ./create_base_db.sh
 # Copy the tarball from /tmp out to host any way you like (docker cp), then use it in a new image build.
 # It goes in files/var/tmp
 
