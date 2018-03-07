@@ -31,8 +31,10 @@ echo 'MySQL init process done. Ready for start up.'
 echo
 
 chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
+
 # Allow mysql to write /var/tmp/mysql.sock
 chgrp mysql /var/tmp
+chmod ug+w /var/tmp
 
 echo "Starting mysqld."
 exec mysqld --max-allowed-packet=${MYSQL_MAX_ALLOWED_PACKET:-16m}
