@@ -87,7 +87,8 @@ else
 	exit 3
 fi
 
-cleanup
+# With the standard config, our collation should be utf8mb4_bin
+mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8mb4_bin"
 
 # Test that the create_base_db.sh script can create a starter tarball.
 outdir=/tmp/output_$$
@@ -98,11 +99,6 @@ if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
   exit 4
 fi
 rm -f $outdir/mariadb_10.1_base_db.tgz
-
-
-
-# With the standard config, our collation should be utf8mb4_bin
-mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8mb4_bin"
 
 cleanup
 
