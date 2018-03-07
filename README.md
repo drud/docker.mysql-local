@@ -8,13 +8,15 @@ It builds/copies a simple starter database (an empty database named "db") and st
 
 In the future there may be a need to add another database or rename a database, etc.
 
-The create_base_db.sh script is there for that. 
+The create_base_db.sh script is there for that. You can run it from the
+root of this repository like this and it will update the db starter file:
+
 
 ```
-docker run -it --entrypoint=bash drud/mariadb-local:current_tag
-./create_base_db.sh
+docker run -it -v "$PWD/files/var/tmp:/var/tmp" --rm --entrypoint=/create_base_db.sh drud/mariadb-local:<your_version>
 ```
 
-Then use `docker cp` to copy the created tarball from /tmp on the container to the host and put it into files/var/tmp in this repo.
+Of course the assumption is that you might have to change the name of the output
+file or make other changes in the process.
 
-And rebuild the container with whatever other changes you're working on.
+But then rebuild the container with whatever other changes you're working on.
