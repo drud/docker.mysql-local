@@ -18,10 +18,7 @@ fi
 
 # Bring in user overrides of mysql config.
 if [ -d /ddev_config/mysql ] ; then
-	if [ ! -d /etc/mysql/conf.d ] ; then
-		mkdir -p /etc/mysql/conf.d
-	fi
-	cp /ddev_config/mysql/* /etc/mysql/conf.d/
+	echo "!includedir /ddev_config/mysql" >> /etc/my.cnf
 fi
 
 # If mariadb has not been initialized, copy in the base image.
