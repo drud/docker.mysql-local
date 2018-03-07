@@ -87,5 +87,17 @@ else
 	exit 3
 fi
 
+cleanup
+
+# Test that the create_base_db.sh script can create a starter tarball.
+outdir=/tmp/output_$$
+mkdir /tmp/output_$$
+docker run -it -v "$outdir:/mysqlbase" --rm --entrypoint=/create_base_db.sh $IMAGE
+if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
+  echo "Failed to build test starter tarball for mariadb."
+  exit 4
+fi
+rm -f $outdir/mariadb_10.1_base_db.tgz
+
 echo "Test passed"
 exit 0
