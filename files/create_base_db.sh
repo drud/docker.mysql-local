@@ -1,22 +1,28 @@
 #!/bin/bash
 
-# This script can be used to create a bare database for use by
-# ddev.
-# docker run -it --entrypoint=bash drud/mariadb-local:whatever
-# ./create_base_db.sh
-# Copy the tarball from /tmp out to host any way you like (docker cp), then use it in a new image build.
-# It goes in files/var/tmp
+# This script can be used to create a bare database tarball for use by
+# ddev startup. It can be run from the host with:
+# docker run -it -v "$PWD/files/var/tmp:/mysqlbase" --rm --entrypoint=/create_base_db.sh drud/mariadb-local:<your_version>
 
 SOCKET=/var/tmp/mysql.sock
+OUTDIR=/mysqlbase
+OUTFILE=$OUTDIR/mariadb_10.1_base_db.tgz
+
+if [ ! -d $OUTDIR ] ; then
+  echo "The required output directory $OUTDIR does not seem to exist."
+  exit 1
+fi
 
 # For this script we don't want the defaults in .my.cnf
 # However, this script is never run on a normal startup, so we can just throw it away.
-rm /root/.my.cnf
+rm -f /root/.my.cnf
+
 chgrp mysql /var/tmp
+chmod ug+rw /var/tmp
 
 if [ -d "/var/lib/mysql/mysql" ]; then
 	echo "A mysql installation already exists, aborting"
-	exit 1
+	exit 2
 fi
 mkdir -p /var/lib/mysql
 chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
@@ -43,7 +49,7 @@ for i in {60..0}; do
 done
 if [ "$i" -eq 0 ]; then
 	echo 'MariaDB initialization startup process timed out.'
-	exit 1
+	exit 4
 fi
 
 
@@ -66,9 +72,9 @@ EOF
 
 if ! kill -s TERM "$pid" || ! wait "$pid"; then
 	echo >&2 'Mariadb initialization process failed.'
-	exit 2
+	exit 5
 fi
 
 cd /var/lib/mysql
-tar -czf /tmp/mariadb_10.1_base_db.tgz db mysql
-echo "The required tarball is now in /tmp/mariadb_10.1_base_db.tgz"
+tar -czf $OUTFILE db mysql
+echo "The required tarball is now in $OUTFILE"
