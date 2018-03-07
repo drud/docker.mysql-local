@@ -100,9 +100,10 @@ if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
 fi
 rm -f $outdir/mariadb_10.1_base_db.tgz
 
+# Kill the container so that we can bring it back up with custom configuration in place.
 cleanup
 
-# Run with alternate configuration my.conf mounted
+# Run with alternate configuration my.cnf mounted
 if ! docker run -v $MYTMPDIR:/var/lib/mysql -v $PWD/test/testdata:/ddev_config -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
 	exit 2
@@ -112,11 +113,14 @@ if ! containercheck; then
 	echo "Container did not become ready"
 fi
 
+# Make sure the custom config is present in the container.
+docker exec -it $CONTAINER_NAME grep "collation-server" /ddev_config/mysql/utf.cnf
+
+# Test that includedir is present in my.cnf
+docker exec -it $CONTAINER_NAME grep "includedir" /etc/my.cnf
+
 # With the custom config, our collation should be utf8_general_ci, not utf8mb4
 mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8_general_ci"
-
-docker exec -it $CONTAINER_NAME grep "DDEV TEST CUSTOM CONFIG" /etc/my.cnf
-
 
 echo "Tests passed"
 exit 0
