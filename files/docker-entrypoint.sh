@@ -16,9 +16,11 @@ if [ "${DDEV_GID:=0}" -gt 0 ] ; then
         groupmod -o -g $DDEV_GID mysql
 fi
 
-# Bring in user overrides of mysql config.
-if [ -d /ddev_config/mysql ] ; then
-	echo "!includedir /ddev_config/mysql" >> /etc/my.cnf
+# Normally /mnt/ddev_config will be mounted; config file requires it,
+# so create it if it doesn't exist.
+if [ ! -d /mnt/ddev_config/mysql ] ; then
+  mkdir -p /mnt/ddev_config/mysql
+  chmod ugo+rx /mnt/ddev_config /mnt/ddev_config/mysql
 fi
 
 # If mariadb has not been initialized, copy in the base image.

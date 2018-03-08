@@ -24,8 +24,8 @@ if [ -d "/var/lib/mysql/mysql" ]; then
 	echo "A mysql installation already exists, aborting"
 	exit 2
 fi
-mkdir -p /var/lib/mysql
-chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
+mkdir -p /var/lib/mysql /mnt/ddev_config/mysql
+chown -R mysql:mysql /var/lib/mysql /mnt/ddev_config/mysql /var/log/mysql*
 
 echo 'Initializing mysql'
 mysql_install_db
