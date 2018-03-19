@@ -52,17 +52,18 @@ trap cleanup EXIT
 echo "Waiting for database server to become ready..."
 if ! containercheck; then
 	echo "Container did not become ready"
+	exit 1
 fi
 echo "Connected to mysql server."
 
 # Try basic connection using root user/password.
 if ! mysql --user=root --password=root --database=mysql --host=127.0.0.1 --port=$HOSTPORT -e "SELECT 1;"; then
-	exit 1;
+	exit 2;
 fi
 
 # Test to make sure the db user and database are installed properly
 if ! mysql -udb -pdb --database=db --host=127.0.0.1 --port=$HOSTPORT -e "SHOW TABLES;"; then
-	exit 2
+	exit 3
 fi
 
 # Make sure we have the right mysql version and can query it (and have root user setup)
@@ -77,7 +78,7 @@ then
 	echo "Version check ok - found '$MYSQL_VERSION'"
 else
 	echo "Expected to see $versionregex. Actual output: $OUTPUT"
-	exit 3
+	exit 4
 fi
 
 # With the standard config, our collation should be utf8mb4_bin
@@ -88,11 +89,12 @@ cleanup
 # Run with alternate configuration my.cnf mounted
 if ! docker run -u "$(id -u):$(id -g)" -v $MYTMPDIR:/var/lib/mysql -v $PWD/test/testdata:/mnt/ddev_config --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
-	exit 2
+	exit 3
 fi
 
 if ! containercheck; then
 	echo "Container did not become ready"
+	exit 5
 fi
 
 # Make sure the custom config is present in the container.
