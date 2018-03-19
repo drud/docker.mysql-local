@@ -83,17 +83,6 @@ fi
 # With the standard config, our collation should be utf8mb4_bin
 mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8mb4_bin"
 
-# Test that the create_base_db.sh script can create a starter tarball.
-outdir=/tmp/output_$$
-mkdir /tmp/output_$$
-docker run -it -v "$outdir:/mysqlbase" --rm --entrypoint=/create_base_db.sh $IMAGE
-if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
-  echo "Failed to build test starter tarball for mariadb."
-  exit 4
-fi
-rm -f $outdir/mariadb_10.1_base_db.tgz
-
-# Kill the container so that we can bring it back up with custom configuration in place.
 cleanup
 
 # Run with alternate configuration my.cnf mounted
@@ -111,6 +100,19 @@ docker exec -it $CONTAINER_NAME grep "collation-server" /mnt/ddev_config/mysql/u
 
 # With the custom config, our collation should be utf8_general_ci, not utf8mb4
 mysql --user=root --password=root --skip-column-names --host=127.0.0.1 --port=$HOSTPORT -e "SHOW GLOBAL VARIABLES like \"collation_server\";" | grep "utf8_general_ci"
+
+cleanup
+
+# Test that the create_base_db.sh script can create a starter tarball.
+# This one runs as root, and ruins the underlying host mount on linux (makes it owned by root)
+outdir=/tmp/output_$$
+mkdir /tmp/output_$$
+docker run -it -v "$outdir:/mysqlbase" --rm --entrypoint=/create_base_db.sh $IMAGE
+if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
+  echo "Failed to build test starter tarball for mariadb."
+  exit 4
+fi
+rm $outdir/mariadb_10.1_base_db.tgz
 
 echo "Tests passed"
 exit 0
