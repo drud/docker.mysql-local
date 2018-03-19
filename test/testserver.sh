@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+set -x
 set -euo pipefail
 
 IMAGE="$1"  # Full image name with tag
