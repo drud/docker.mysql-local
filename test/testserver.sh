@@ -8,13 +8,6 @@ CONTAINER_NAME="testserver"
 HOSTPORT=33000
 MYTMPDIR=~/tmp/testserver-sh_$$
 
-DDEV_UID=0
-DDEV_GID=0
-if [ $(uname -s) == "Linux" ]; then
-	DDEV_UID=$(id -u)
-	DDEV_GID=$(id -g)
-fi
-
 # Always clean up the container on exit.
 function cleanup {
 	echo "Removing ${CONTAINER_NAME}"
@@ -47,7 +40,7 @@ mkdir -p $MYTMPDIR
 rm -rf $MYTMPDIR/*
 
 echo "Starting image with database image $IMAGE"
-if ! docker run -v $MYTMPDIR:/var/lib/mysql -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
+if ! docker run -u "$(id -u):$(id -g)" -v $MYTMPDIR:/var/lib/mysql --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
 	exit 2
 fi
@@ -104,7 +97,7 @@ rm -f $outdir/mariadb_10.1_base_db.tgz
 cleanup
 
 # Run with alternate configuration my.cnf mounted
-if ! docker run -v $MYTMPDIR:/var/lib/mysql -v $PWD/test/testdata:/mnt/ddev_config -e DDEV_UID=$DDEV_UID -e DDEV_GID=$DDEV_UID --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
+if ! docker run -u "$(id -u):$(id -g)" -v $MYTMPDIR:/var/lib/mysql -v $PWD/test/testdata:/mnt/ddev_config --name=$CONTAINER_NAME -p $HOSTPORT:3306 -d $IMAGE; then
 	echo "MySQL server start failed with error code $?"
 	exit 2
 fi
