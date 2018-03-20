@@ -12,7 +12,6 @@ MYTMPDIR=~/tmp/testserver-sh_$$
 function cleanup {
 	echo "Removing ${CONTAINER_NAME}"
 	docker rm -f $CONTAINER_NAME 2>/dev/null || true
-	rm -rf $MYTMPDIR
 }
 
 # Wait for container to be ready.
@@ -114,7 +113,7 @@ if [ ! -f $outdir/mariadb_10.1_base_db.tgz ] ; then
   echo "Failed to build test starter tarball for mariadb."
   exit 4
 fi
-rm $outdir/mariadb_10.1_base_db.tgz
+rm -rf $outdir $MYTMPDIR
 
 echo "Tests passed"
 exit 0
