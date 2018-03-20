@@ -3,19 +3,6 @@ set -x
 set -eu
 set -o pipefail
 
-## Change  to UID/GID of the docker user
-## We use the default assignment to zero to prevent triggering
-## unbound variable exit. Since we chown all files to mysql, this
-## must be done at the beginning of the script here.
-#if [ "${DDEV_UID:=0}" -gt "0" ] ; then
-#        echo "changing mysql user to uid: $DDEV_UID"
-#        usermod -o -u $DDEV_UID mysql
-#fi
-#if [ "${DDEV_GID:=0}" -gt 0 ] ; then
-#        echo "changing mysql group to gid: $DDEV_GID"
-#        groupmod -o -g $DDEV_GID mysql
-#fi
-
 # Normally /mnt/ddev_config will be mounted; config file requires it,
 # so create it if it doesn't exist.
 if [ ! -d /mnt/ddev_config/mysql ] ; then
@@ -28,7 +15,6 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	mkdir -p /var/lib/mysql
 	# The tarball should include only the contents of the db and mysql directories.
 	tar --no-same-owner -C /var/lib/mysql -zxf /var/tmp/mariadb_10.1_base_db.tgz
-#	chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
 	echo 'Database initialized'
 fi
 
@@ -36,12 +22,6 @@ fi
 echo
 echo 'MySQL init process done. Ready for start up.'
 echo
-
-#chown -R mysql:mysql /var/lib/mysql /var/log/mysql*
-
-# Allow mysql to write /var/tmp/mysql.sock
-#chgrp mysql /var/tmp
-#chmod ug+w /var/tmp
 
 echo "Starting mysqld."
 tail -f /var/log/mysqld.log &

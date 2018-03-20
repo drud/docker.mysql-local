@@ -19,7 +19,7 @@ fi
 
 # For this script we don't want the defaults in .my.cnf
 # However, this script is never run on a normal startup, so we can just throw it away.
-rm -f /root/.my.cnf
+rm -f /home/.my.cnf
 
 chgrp mysql /var/tmp
 chmod ug+rw /var/tmp
